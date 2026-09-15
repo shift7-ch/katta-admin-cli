@@ -7,11 +7,11 @@
 
     <groupId>cloud.katta</groupId>
     <artifactId>katta-admin-cli</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3-SNAPSHOT</version>
 
     <scm>
         <connection>scm:git:https://github.com/shift7-ch/katta-admin-cli.git</connection>
-        <tag>1.0.2</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <properties>
