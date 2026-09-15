@@ -93,7 +93,7 @@ jobs:
     name: Build native image for macOS
     permissions:
       contents: write
-    runs-on: macos-self-hosted
+    runs-on: [ self-hosted, macos ]
     steps:
       - uses: actions/checkout@v7
       - uses: graalvm/setup-graalvm@v1
