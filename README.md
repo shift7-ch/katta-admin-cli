@@ -20,27 +20,45 @@ The `katta` Admin CLI is distributed as a self-contained native executable built
 - GraalVM for JDK 25 (or newer) with the `native-image` tool on the `PATH`, e.g. via [`graalvm/setup-graalvm`](https://github.com/graalvm/setup-graalvm)
   or [SDKMAN!](https://sdkman.io/).
 - On Linux the executable is linked statically against musl (`--static --libc=musl`), which requires `musl-dev` / `musl-tools` and a musl-linked static
-  `libz.a` — see [`.github/workflows/cli.yml`](../.github/workflows/cli.yml) for the exact setup. macOS builds are dynamically linked and need no extra tooling.
+  `libz.a` — see [`.github/workflows/release.yml`](.github/workflows/release.yml) for the exact setup. macOS builds are dynamically linked and need no extra tooling.
 
 ```bash
-# 1. Install the sibling modules (katta-clientlib-hub, katta-clientlib-tests) into the local repository
-mvn install -pl admin-cli -am -DskipTests
-
-# 2. Build the native image
-mvn verify -pl admin-cli -Pnative
+mvn verify -Pnative
 ```
 
+The native image build runs the integration tests with the native-image agent to collect reachability metadata and therefore requires Docker.
 Add `-Prelease` to build with `-O3` instead of the default `-Ob` (faster runtime, slower build). The resulting executable is written to
-`admin-cli/target/katta`:
+`target/katta`:
 
 ```bash
-admin-cli/target/katta --help
+target/katta --help
+```
+
+### Tests
+
+The Katta Server API client is used from [`katta-clientlib-hub`](https://github.com/shift7-ch/katta-clientlib), resolved from the shift7 Maven
+repository in the version set with the `katta-clientlib.version` property.
+
+Run unit tests only:
+
+```bash
+mvn verify -DskipITs
+```
+
+Integration tests are tagged with `cli` and start Katta Server, Keycloak and MinIO with the Docker Compose environment of
+[katta-compose](https://github.com/shift7-ch/katta-compose) included with its Git URL in
+[`compose.yaml`](src/test/resources/compose.yaml), using its default variables, Keycloak realm and setup files. Docker Compose fetches the
+referenced commit on first use. To run integration tests with a local checkout of katta-compose instead, replace the Git URL with the absolute
+path to `compose.yaml` in the checkout.
+
+```bash
+mvn verify
 ```
 
 ## Installation
 
 Every tagged release publishes native executables and packages as
-[GitHub Release assets](https://github.com/shift7-ch/katta-clientlib/releases).
+[GitHub Release assets](https://github.com/shift7-ch/katta-admin-cli/releases).
 
 ### macOS (Homebrew)
 
@@ -55,14 +73,14 @@ Upgrade with `brew upgrade katta`. Requires Apple Silicon (arm64).
 ### Linux (Debian/Ubuntu)
 
 ```bash
-curl -fsSLO https://github.com/shift7-ch/katta-clientlib/releases/latest/download/katta_amd64.deb
+curl -fsSLO https://github.com/shift7-ch/katta-admin-cli/releases/latest/download/katta_amd64.deb
 sudo apt install ./katta_amd64.deb
 ```
 
 ### Linux (Fedora/RHEL/openSUSE)
 
 ```bash
-sudo rpm -i https://github.com/shift7-ch/katta-clientlib/releases/latest/download/katta.x86_64.rpm
+sudo rpm -i https://github.com/shift7-ch/katta-admin-cli/releases/latest/download/katta.x86_64.rpm
 ```
 
 The `.deb` and `.rpm` packages install `katta` to `/usr/bin/katta` and a bash

@@ -1,0 +1,18 @@
+version: 2
+registries:
+  # Releases of katta-clientlib-hub
+  maven-shift7:
+    type: maven-repository
+    url: https://repo-maven-shift7.s3.amazonaws.com/releases/
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: maven
+    directory: "/"
+    registries:
+      - maven-shift7
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 99

@@ -1,5 +1,5 @@
 # nfpm configuration for the Katta Admin CLI Linux packages (.deb / .rpm).
-# Rendered and consumed by .github/workflows/cli.yml on tag builds.
+# Rendered and consumed by .github/workflows/release.yml on tag builds.
 # See https://nfpm.goreleaser.com/configuration/
 name: katta
 arch: amd64
@@ -17,11 +17,11 @@ license: "AGPL-3.0-or-later"
 section: utils
 priority: optional
 contents:
-  - src: ./admin-cli/target/katta
+  - src: ./target/katta
     dst: /usr/bin/katta
     file_info:
       mode: 0755
-  - src: ./admin-cli/target/katta.bash
+  - src: ./target/katta.bash
     dst: /usr/share/bash-completion/completions/katta
     file_info:
       mode: 0644

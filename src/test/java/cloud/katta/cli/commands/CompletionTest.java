@@ -33,7 +33,7 @@ class CompletionTest {
 
     @Test
     public void testShellSeparateValue() {
-        // Invocation used by .github/workflows/cli.yml
+        // Invocation used by .github/workflows/release.yml
         assertBashCompletion("completion", "--shell", "bash");
     }
 
