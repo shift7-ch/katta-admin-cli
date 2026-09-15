@@ -1,5 +1,5 @@
 # Homebrew formula template for the Katta Admin CLI.
-# .github/workflows/cli.yml substitutes __VERSION__ and __SHA256_MACOS_ARM64__
+# .github/workflows/release.yml substitutes __VERSION__ and __SHA256_MACOS_ARM64__
 # on tag builds and pushes the result to shift7-ch/homebrew-katta as Formula/katta.rb.
 class Katta < Formula
   desc "Admin CLI to configure a Katta Server including its S3 storage backend"
@@ -11,7 +11,7 @@ class Katta < Formula
   depends_on arch: :arm64
   depends_on :macos
 
-  url "https://github.com/shift7-ch/katta-clientlib/releases/download/#{version}/katta-macos-arm64.tar.gz"
+  url "https://github.com/shift7-ch/katta-admin-cli/releases/download/#{version}/katta-macos-arm64.tar.gz"
   sha256 "__SHA256_MACOS_ARM64__"
 
   def install

@@ -1,0 +1,5 @@
+# Docker Compose environment for integration tests from https://github.com/shift7-ch/katta-compose with its
+# default variables, Keycloak realm and setup files. Replace the reference after # with a tag to use a release, or the
+# URL with the absolute path to compose.yaml in a local checkout.
+include:
+  - https://github.com/shift7-ch/katta-compose.git#main

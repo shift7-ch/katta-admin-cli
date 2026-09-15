@@ -10,11 +10,16 @@ import org.junit.platform.engine.TestTag;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestPlan;
 import org.testcontainers.containers.ComposeContainer;
-import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
+import org.testcontainers.containers.wait.strategy.DockerHealthcheckWaitStrategy;
 
-import java.io.IOException;
-import java.time.Duration;
+import java.io.File;
+import java.net.URISyntaxException;
+import java.util.Objects;
 
+/**
+ * Starts the Docker Compose environment from <a href="https://github.com/shift7-ch/katta-compose">katta-compose</a>
+ * included in {@code compose.yaml} with its default variables when the test plan contains integration tests.
+ */
 public class AdminCLIIntegrationTestSetupListener implements TestExecutionListener {
     private static final Logger log = LogManager.getLogger(AdminCLIIntegrationTestSetupListener.class);
     private static ComposeContainer compose;
@@ -26,12 +31,10 @@ public class AdminCLIIntegrationTestSetupListener implements TestExecutionListen
                 .flatMap(root -> testPlan.getChildren(root).stream())
                 .anyMatch(ti -> ti.getTags().contains(TestTag.create("cli")))) {
 
-            try {
-                compose = KattaCompose.container("/.local.env", "local");
-            }
-            catch(IOException e) {
-                throw new RuntimeException(e);
-            }
+            compose = new ComposeContainer(composeFile())
+                    .withPull(true)
+                    .withOptions("--profile=local")
+                    .waitingFor("hub", new DockerHealthcheckWaitStrategy());
             compose.start();
         }
     }
@@ -45,6 +48,15 @@ public class AdminCLIIntegrationTestSetupListener implements TestExecutionListen
         }
         catch(Exception e) {
             log.warn("Failed to stop docker-compose test environment", e);
+        }
+    }
+
+    private static File composeFile() {
+        try {
+            return new File(Objects.requireNonNull(AdminCLIIntegrationTestSetupListener.class.getResource("/compose.yaml"), "compose.yaml").toURI());
+        }
+        catch(URISyntaxException e) {
+            throw new IllegalArgumentException(e);
         }
     }
 }
