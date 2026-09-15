@@ -70,14 +70,24 @@ jobs:
           nfpm package -f src/deploy/nfpm.yaml -p deb -t target/katta_amd64.deb
           nfpm package -f src/deploy/nfpm.yaml -p rpm -t target/katta.x86_64.rpm
           cp target/katta target/katta-linux-amd64
-      - name: Upload Linux artifacts
+      # Unarchived uploads take the file name as the artifact name.
+      - name: Upload Linux binary
         uses: actions/upload-artifact@v7
         with:
-          name: katta-linux
-          path: |
-            target/katta-linux-amd64
-            target/katta_amd64.deb
-            target/katta.x86_64.rpm
+          path: target/katta-linux-amd64
+          archive: false
+          if-no-files-found: error
+      - name: Upload .deb package
+        uses: actions/upload-artifact@v7
+        with:
+          path: target/katta_amd64.deb
+          archive: false
+          if-no-files-found: error
+      - name: Upload .rpm package
+        uses: actions/upload-artifact@v7
+        with:
+          path: target/katta.x86_64.rpm
+          archive: false
           if-no-files-found: error
       - name: Publish Linux packages on Github Releases
         if: startsWith(github.ref, 'refs/tags/')
@@ -114,12 +124,11 @@ jobs:
       - name: Package macOS tarball
         run: |
           tar czf target/katta-macos-arm64.tar.gz -C target katta
-      - name: Upload macOS artifacts
+      - name: Upload macOS tarball
         uses: actions/upload-artifact@v7
         with:
-          name: katta-macos
-          path: |
-            target/katta-macos-arm64.tar.gz
+          path: target/katta-macos-arm64.tar.gz
+          archive: false
           if-no-files-found: error
       - name: Publish macOS tarball on Github Releases
         if: startsWith(github.ref, 'refs/tags/')
@@ -138,7 +147,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/download-artifact@v8
         with:
-          name: katta-macos
+          name: katta-macos-arm64.tar.gz
           path: dist
       - name: Render and push formula
         env:
