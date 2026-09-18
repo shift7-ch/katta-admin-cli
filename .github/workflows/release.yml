@@ -8,19 +8,35 @@ on:
 
 env:
   NFPM_VERSION: "2.47.0"
-  # Digest of nfpm_${NFPM_VERSION}_amd64.deb, see
-  # https://github.com/goreleaser/nfpm/releases/download/v2.47.0/checksums.txt
-  NFPM_SHA256: "3f1cf344bd0b57373ca55636a78c08b0491f7293d609a456a9ac3b0b150fda97"
 
 jobs:
   linux:
-    name: Build native image for Linux
+    name: Build native image for Linux (${{ matrix.arch }})
+    strategy:
+      # a failing architecture must not cancel the release of the other
+      fail-fast: false
+      matrix:
+        include:
+          # statically linked against musl, see profile linux in pom.xml
+          - arch: amd64
+            runner: ubuntu-latest
+            rpm: x86_64
+            # Digest of nfpm_${NFPM_VERSION}_amd64.deb, see
+            # https://github.com/goreleaser/nfpm/releases/download/v2.47.0/checksums.txt
+            nfpm-sha256: "3f1cf344bd0b57373ca55636a78c08b0491f7293d609a456a9ac3b0b150fda97"
+          # musl is not supported on aarch64; linked dynamically against glibc only, see profile linux-aarch64 in pom.xml.
+          # Built on Ubuntu 22.04 to require no newer glibc than 2.34.
+          - arch: arm64
+            runner: ubuntu-22.04-arm
+            rpm: aarch64
+            # Digest of nfpm_${NFPM_VERSION}_arm64.deb
+            nfpm-sha256: "27419eb382695a7942be8ad52259f3ec1854fad001b3ae4baed34ce39a223b97"
     permissions:
       contents: write
       id-token: write
       attestations: write
       artifact-metadata: write
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v7
       - uses: graalvm/setup-graalvm@v1
@@ -31,6 +47,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
       - name: Install musl tools
+        if: matrix.arch == 'amd64'
         run: |
           sudo apt-get update && sudo apt-get install -y musl-dev musl-tools
           # Build and install zlib for musl (libz-dev only provides glibc-linked libz.a,
@@ -61,43 +78,44 @@ jobs:
         run: target/katta completion --shell bash > target/katta.bash
       - name: Install nfpm
         run: |
-          curl -fsSL "https://github.com/goreleaser/nfpm/releases/download/v${NFPM_VERSION}/nfpm_${NFPM_VERSION}_amd64.deb" -o /tmp/nfpm.deb
-          echo "${NFPM_SHA256}  /tmp/nfpm.deb" | sha256sum -c
+          curl -fsSL "https://github.com/goreleaser/nfpm/releases/download/v${NFPM_VERSION}/nfpm_${NFPM_VERSION}_${{ matrix.arch }}.deb" -o /tmp/nfpm.deb
+          echo "${{ matrix.nfpm-sha256 }}  /tmp/nfpm.deb" | sha256sum -c
           sudo dpkg -i /tmp/nfpm.deb
       - name: Build .deb and .rpm packages
         env:
           VERSION: ${{ steps.version.outputs.value }}
+          ARCH: ${{ matrix.arch }}
         run: |
           # Version-less filenames keep the releases/latest/download/ URLs stable;
           # the package version lives in the .deb/.rpm metadata.
-          nfpm package -f src/deploy/nfpm.yaml -p deb -t target/katta_amd64.deb
-          nfpm package -f src/deploy/nfpm.yaml -p rpm -t target/katta.x86_64.rpm
-          cp target/katta target/katta-linux-amd64
+          nfpm package -f src/deploy/nfpm.yaml -p deb -t target/katta_${{ matrix.arch }}.deb
+          nfpm package -f src/deploy/nfpm.yaml -p rpm -t target/katta.${{ matrix.rpm }}.rpm
+          cp target/katta target/katta-linux-${{ matrix.arch }}
       - name: Attest build provenance
         if: startsWith(github.ref, 'refs/tags/')
         uses: actions/attest@v4
         with:
           subject-path: |
-            target/katta-linux-amd64
-            target/katta_amd64.deb
-            target/katta.x86_64.rpm
+            target/katta-linux-${{ matrix.arch }}
+            target/katta_${{ matrix.arch }}.deb
+            target/katta.${{ matrix.rpm }}.rpm
       # Unarchived uploads take the file name as the artifact name.
       - name: Upload Linux binary
         uses: actions/upload-artifact@v7
         with:
-          path: target/katta-linux-amd64
+          path: target/katta-linux-${{ matrix.arch }}
           archive: false
           if-no-files-found: error
       - name: Upload .deb package
         uses: actions/upload-artifact@v7
         with:
-          path: target/katta_amd64.deb
+          path: target/katta_${{ matrix.arch }}.deb
           archive: false
           if-no-files-found: error
       - name: Upload .rpm package
         uses: actions/upload-artifact@v7
         with:
-          path: target/katta.x86_64.rpm
+          path: target/katta.${{ matrix.rpm }}.rpm
           archive: false
           if-no-files-found: error
       - name: Publish Linux packages on Github Releases
@@ -106,9 +124,9 @@ jobs:
         with:
           fail_on_unmatched_files: true
           files: |
-            target/katta-linux-amd64
-            target/katta_amd64.deb
-            target/katta.x86_64.rpm
+            target/katta-linux-${{ matrix.arch }}
+            target/katta_${{ matrix.arch }}.deb
+            target/katta.${{ matrix.rpm }}.rpm
 
   macos:
     name: Build native image for macOS
