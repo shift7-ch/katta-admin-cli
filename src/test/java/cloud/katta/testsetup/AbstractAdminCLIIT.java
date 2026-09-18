@@ -16,12 +16,12 @@ public class AbstractAdminCLIIT {
 
     @BeforeEach
     protected void setup() throws Exception {
+        // service account of client cryptomatorhub-system with realm role admin, as the realm of katta-compose does not enable direct access grants
         accessToken = given()
                 .header("Content-Type", "application/x-www-form-urlencoded")
-                .formParam("client_id", "cryptomator")
-                .formParam("grant_type", "password")
-                .formParam("username", "admin")
-                .formParam("password", "admin")
+                .formParam("client_id", "cryptomatorhub-system")
+                .formParam("client_secret", "top-secret")
+                .formParam("grant_type", "client_credentials")
                 .when()
                 .post("http://localhost:8380/realms/cryptomator/protocol/openid-connect/token")
                 .then()
