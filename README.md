@@ -1,17 +1,17 @@
-# Katta: the secure and easy way to work in teams
+# Katta Admin CLI
 
-Katta brings zero-config storage management and zero-knowledge key management for teams and organizations.
+[![Maven Build](https://github.com/shift7-ch/katta-admin-cli/actions/workflows/build.yml/badge.svg)](https://github.com/shift7-ch/katta-admin-cli/actions/workflows/build.yml)
 
-## Katta Admin CLI
+> [Katta](https://katta.cloud/): transform your S3 storage into a secure, team-friendly workspace with client-side encryption.
 
-This CLI program is used to configure a Katta Server including its S3 storage backend. Supported storage backend configurations are:
+This CLI program is used to configure a [Katta Server](https://github.com/shift7-ch/katta-server) including its S3 storage backend. Supported storage backend configurations are:
 
 - AWS S3 accessed using static access keys
 - AWS S3 accessed using AWS Security Token Service (STS) issuing temporary access keys from OIDC access token obtained by user from Keycloak identity provider.
 - Generic S3-compatible provider accessed using static access credentials.
 - MinIO accessed using Security Token Service (STS) with OIDC.
 
-### Build the native image
+## Build the native image
 
 The `katta` Admin CLI is distributed as a self-contained native executable built with GraalVM `native-image` through the `native` Maven profile.
 
@@ -34,7 +34,7 @@ Add `-Prelease` to build with `-O3` instead of the default `-Ob` (faster runtime
 target/katta --help
 ```
 
-### Tests
+## Tests
 
 The Katta Server API client is used from [`katta-clientlib-hub`](https://github.com/shift7-ch/katta-clientlib), resolved from the shift7 Maven
 repository in the version set with the `katta-clientlib.version` property.
