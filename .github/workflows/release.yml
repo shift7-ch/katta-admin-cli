@@ -21,6 +21,8 @@ jobs:
           - arch: amd64
             runner: ubuntu-latest
             rpm: x86_64
+            deb-depends: ""
+            rpm-depends: ""
             # Digest of nfpm_${NFPM_VERSION}_amd64.deb, see
             # https://github.com/goreleaser/nfpm/releases/download/v2.47.0/checksums.txt
             nfpm-sha256: "3f1cf344bd0b57373ca55636a78c08b0491f7293d609a456a9ac3b0b150fda97"
@@ -29,6 +31,8 @@ jobs:
           - arch: arm64
             runner: ubuntu-22.04-arm
             rpm: aarch64
+            deb-depends: "libc6 (>= 2.34)"
+            rpm-depends: "glibc >= 2.34"
             # Digest of nfpm_${NFPM_VERSION}_arm64.deb
             nfpm-sha256: "27419eb382695a7942be8ad52259f3ec1854fad001b3ae4baed34ce39a223b97"
     permissions:
@@ -85,6 +89,8 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.value }}
           ARCH: ${{ matrix.arch }}
+          DEB_DEPENDS: ${{ matrix.deb-depends }}
+          RPM_DEPENDS: ${{ matrix.rpm-depends }}
         run: |
           # Version-less filenames keep the releases/latest/download/ URLs stable;
           # the package version lives in the .deb/.rpm metadata.

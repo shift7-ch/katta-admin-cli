@@ -26,3 +26,12 @@ contents:
     dst: /usr/share/bash-completion/completions/katta
     file_info:
       mode: 0644
+# Runtime dependency on glibc for the dynamically linked aarch64 executable (profile linux-aarch64 in pom.xml).
+# DEB_DEPENDS and RPM_DEPENDS are empty for the statically linked amd64 executable; nfpm drops empty entries.
+overrides:
+  deb:
+    depends:
+      - ${DEB_DEPENDS}
+  rpm:
+    depends:
+      - ${RPM_DEPENDS}
