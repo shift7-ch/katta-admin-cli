@@ -20,7 +20,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Released version of the Katta Server API client. Use a snapshot only for unreleased API changes. -->
-        <katta-clientlib.version>1.0.1</katta-clientlib.version>
+        <katta-clientlib.version>1.0.2</katta-clientlib.version>
         <picocli.version>4.7.7</picocli.version>
         <junit.jupiter.version>6.1.3</junit.jupiter.version>
         <testcontainers.version>2.0.5</testcontainers.version>
