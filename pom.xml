@@ -10,6 +10,7 @@
     <version>1.0.3-SNAPSHOT</version>
 
     <scm>
+        <url>https://github.com/shift7-ch/katta-admin-cli</url>
         <connection>scm:git:https://github.com/shift7-ch/katta-admin-cli.git</connection>
         <tag>HEAD</tag>
     </scm>
