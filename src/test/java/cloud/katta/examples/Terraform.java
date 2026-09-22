@@ -27,11 +27,8 @@ public class Terraform {
             final String[] options = {
                     "setup", "aws",
                     "--profileName", "430118840017_AdministratorAccess",
-                    "--realmUrl", realmUrl,
+                    "--hubUrl", hubUrl,
                     "--roleNamePrefix", roleNamePrefix,
-                    "--clientId", "cryptomator",
-                    "--clientId", "cryptomatorhub",
-                    "--clientId", "cryptomatorvaults",
                     "--bucketPrefix", bucketPrefix};
             System.out.println(String.format("katta \"%s\"", String.join("\" \"", options)));
             int rc = new CommandLine(new Katta()).execute(options);

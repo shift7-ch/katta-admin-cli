@@ -92,21 +92,20 @@ built for x86_64/amd64 and aarch64/arm64. The executables are also published as
 ### Setup AWS using OIDC Provider and Security Token Service (STS) with `setup` command
 
 Set up AWS as a storage backend for Katta Server. Configures identity provider and roles in IAM to restrict access to S3 buckets to users authenticated by
-Keycloak.
+Keycloak. The Keycloak realm URL and client IDs for the identity provider are read from the public configuration of Katta Server at `<hub-url>/api/config`.
 
 ```bash
 katta setup aws \
-  --realmUrl <realm-url>
+  --hubUrl <hub-url>
 ```
 
 **Required Options:**
 
-- `--realmUrl`: Keycloak realm URL with scheme. Example: `https://keycloak.default.domain/realms/cryptomator`
+- `--hubUrl`: Katta Server URL. Example: `https://hub.default.domain`
 
 **Additional Options:**
 
 - `--profileName`: AWS profile to load AWS credentials from (see `~/.aws/credentials`)
-- `--clientId`: Client Ids for the OIDC provider
 - `--roleNamePrefix`: Prefix used for IAM role names. Defaults to `katta-`.
 - `--bucketPrefix`: Prefix used when creating buckets for this storage profile. Defaults to `katta-`.
 
