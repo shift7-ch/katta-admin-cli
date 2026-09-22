@@ -35,7 +35,7 @@ class AWSSTSStorageTest {
         cli.bucketPrefix = "prefix-";
         cli.roleNamePrefix = "prae-";
         cli.sleep = 1;
-        cli.call(iam, "arnP", "alskdjfkl");
+        cli.call(iam, "arnP");
         // 3 = 1 x create-bucket and 2 x access-bucket
         Mockito.verify(iam, Mockito.times(3)).putRolePolicy(Mockito.any(PutRolePolicyRequest.class));
         Mockito.verify(iam, Mockito.times(3)).updateAssumeRolePolicy(Mockito.any(UpdateAssumeRolePolicyRequest.class));

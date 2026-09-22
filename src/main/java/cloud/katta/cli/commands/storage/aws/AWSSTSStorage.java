@@ -4,15 +4,7 @@
 
 package cloud.katta.cli.commands.storage.aws;
 
-
-import org.apache.commons.codec.digest.DigestUtils;
-
-import javax.net.ssl.HttpsURLConnection;
-import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -39,7 +31,6 @@ import software.amazon.awssdk.services.iam.model.NoSuchEntityException;
 import software.amazon.awssdk.services.iam.model.OpenIDConnectProviderListEntry;
 import software.amazon.awssdk.services.iam.model.PutRolePolicyRequest;
 import software.amazon.awssdk.services.iam.model.UpdateAssumeRolePolicyRequest;
-import software.amazon.awssdk.services.iam.model.UpdateOpenIdConnectProviderThumbprintRequest;
 
 import static cloud.katta.cli.commands.common.Defaults.*;
 
@@ -62,8 +53,6 @@ import static cloud.katta.cli.commands.common.Defaults.*;
         showDefaultValues = true,
         mixinStandardHelpOptions = true)
 public class AWSSTSStorage implements Callable<Void> {
-
-    private static final int TIMEOUT_MILLIS = 30000;
 
     // TODO get from /api/config instead/optionally?
     @CommandLine.Option(names = {"--realmUrl"}, description = "Keycloak realm URL with scheme. Example: \"https://keycloak.testing.katta.cloud/realms/cryptomator\".", required = true)
@@ -100,22 +89,17 @@ public class AWSSTSStorage implements Callable<Void> {
         }
         final String arnPostfix = realmUrl.substring(uri.getScheme().length() + "://".length());
 
-        final URL url = uri.toURL();
-
-        final String sha = getThumbprint(url);
-        System.out.println(sha);
-
         try (final IamClient iam = IamClient.builder()
                 .region(Region.AWS_GLOBAL)
                 .credentialsProvider(DefaultCredentialsProvider.builder()
                         .profileName(profileName).build())
                 .build()) {
-            call(iam, arnPostfix, sha);
+            call(iam, arnPostfix);
         }
         return null;
     }
 
-    protected void call(final IamClient iam, final String arnPostfix, final String thumbprint) throws InterruptedException {
+    protected void call(final IamClient iam, final String arnPostfix) throws InterruptedException {
         final ListOpenIdConnectProvidersResponse existingOpenIdConnectProviders = iam.listOpenIDConnectProviders();
         System.out.println(existingOpenIdConnectProviders);
 
@@ -124,27 +108,15 @@ public class AWSSTSStorage implements Callable<Void> {
         if(existingOIDCProvider.isPresent()) {
             final GetOpenIdConnectProviderResponse response = iam.getOpenIDConnectProvider(GetOpenIdConnectProviderRequest.builder()
                     .openIDConnectProviderArn(existingOIDCProvider.get().arn()).build());
-            if(response.hasClientIDList()) {
-                if(response.clientIDList().containsAll(clientId)) {
-                    iam.updateOpenIDConnectProviderThumbprint(UpdateOpenIdConnectProviderThumbprintRequest.builder()
-                            .openIDConnectProviderArn(existingOIDCProvider.get().arn())
-                            .thumbprintList(thumbprint).build());
-                    oidcProviderArn = existingOIDCProvider.get().arn();
-                }
-                else {
-                    iam.deleteOpenIDConnectProvider(DeleteOpenIdConnectProviderRequest.builder()
-                            .openIDConnectProviderArn(existingOIDCProvider.get().arn()).build());
-                    oidcProviderArn = iam.createOpenIDConnectProvider(CreateOpenIdConnectProviderRequest.builder()
-                            .url(realmUrl)
-                            .clientIDList(clientId)
-                            .thumbprintList(thumbprint)
-                            .build()).openIDConnectProviderArn();
-                }
+            if(response.hasClientIDList() && !response.clientIDList().containsAll(clientId)) {
+                iam.deleteOpenIDConnectProvider(DeleteOpenIdConnectProviderRequest.builder()
+                        .openIDConnectProviderArn(existingOIDCProvider.get().arn()).build());
+                oidcProviderArn = iam.createOpenIDConnectProvider(CreateOpenIdConnectProviderRequest.builder()
+                        .url(realmUrl)
+                        .clientIDList(clientId)
+                        .build()).openIDConnectProviderArn();
             }
             else {
-                iam.updateOpenIDConnectProviderThumbprint(UpdateOpenIdConnectProviderThumbprintRequest.builder()
-                        .openIDConnectProviderArn(existingOIDCProvider.get().arn())
-                        .thumbprintList(thumbprint).build());
                 oidcProviderArn = existingOIDCProvider.get().arn();
             }
         }
@@ -152,7 +124,6 @@ public class AWSSTSStorage implements Callable<Void> {
             final CreateOpenIdConnectProviderResponse response = iam.createOpenIDConnectProvider(CreateOpenIdConnectProviderRequest.builder()
                     .url(realmUrl)
                     .clientIDList(clientId)
-                    .thumbprintList(thumbprint)
                     .build());
             oidcProviderArn = response.openIDConnectProviderArn();
         }
@@ -303,28 +274,5 @@ public class AWSSTSStorage implements Callable<Void> {
                 .policyName(roleName)
                 .policyDocument(permissionPolicy)
                 .build());
-    }
-
-    /**
-     * SHA-1 thumbprint of the last certificate in the chain presented by the server, which is the top intermediate CA
-     * per <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc_verify-thumbprint.html">AWS docs</a>.
-     */
-    private static String getThumbprint(final URL url) throws IOException, CertificateEncodingException {
-        final Certificate[] chain = getCertificates(url);
-        return DigestUtils.sha1Hex(chain[chain.length - 1].getEncoded());
-    }
-
-    private static Certificate[] getCertificates(final URL url) throws IOException {
-        final HttpsURLConnection c = (HttpsURLConnection) url.openConnection();
-        c.setConnectTimeout(TIMEOUT_MILLIS);
-        c.setReadTimeout(TIMEOUT_MILLIS);
-        c.setRequestProperty("User-Agent", "katta-cli");
-        try {
-            c.connect();
-            return c.getServerCertificates();
-        }
-        finally {
-            c.disconnect();
-        }
     }
 }
