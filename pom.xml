@@ -310,6 +310,7 @@
             <activation>
                 <os>
                     <family>Linux</family>
+                    <arch>amd64</arch>
                 </os>
             </activation>
             <build>
@@ -324,6 +325,32 @@
                                 <arg>--enable-url-protocols=${native.url.protocols}</arg>
                                 <arg>--static</arg>
                                 <arg>--libc=musl</arg>
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>linux-aarch64</id>
+            <activation>
+                <os>
+                    <family>Linux</family>
+                    <arch>aarch64</arch>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native-maven-plugin.version}</version>
+                        <configuration>
+                            <buildArgs>
+                                <arg>${native.optimization}</arg>
+                                <arg>--enable-url-protocols=${native.url.protocols}</arg>
+                                <!-- musl is not supported on aarch64; link statically except for glibc -->
+                                <arg>--static-nolibc</arg>
                             </buildArgs>
                         </configuration>
                     </plugin>

@@ -19,8 +19,9 @@ The `katta` Admin CLI is distributed as a self-contained native executable built
 
 - GraalVM for JDK 25 (or newer) with the `native-image` tool on the `PATH`, e.g. via [`graalvm/setup-graalvm`](https://github.com/graalvm/setup-graalvm)
   or [SDKMAN!](https://sdkman.io/).
-- On Linux the executable is linked statically against musl (`--static --libc=musl`), which requires `musl-dev` / `musl-tools` and a musl-linked static
-  `libz.a` — see [`.github/workflows/release.yml`](.github/workflows/release.yml) for the exact setup. macOS builds are dynamically linked and need no extra tooling.
+- On Linux x86_64 the executable is linked statically against musl (`--static --libc=musl`), which requires `musl-dev` / `musl-tools` and a musl-linked
+  static `libz.a` — see [`.github/workflows/release.yml`](.github/workflows/release.yml) for the exact setup. GraalVM does not support musl on Linux
+  aarch64, where the executable is linked statically except for glibc (`--static-nolibc`). macOS builds are dynamically linked and need no extra tooling.
 
 ```bash
 mvn verify -Pnative
@@ -73,19 +74,20 @@ Upgrade with `brew upgrade katta`. Requires Apple Silicon (arm64).
 ### Linux (Debian/Ubuntu)
 
 ```bash
-curl -fsSLO https://github.com/shift7-ch/katta-admin-cli/releases/latest/download/katta_amd64.deb
-sudo apt install ./katta_amd64.deb
+curl -fsSLO https://github.com/shift7-ch/katta-admin-cli/releases/latest/download/katta_$(dpkg --print-architecture).deb
+sudo apt install ./katta_$(dpkg --print-architecture).deb
 ```
 
 ### Linux (Fedora/RHEL/openSUSE)
 
 ```bash
-sudo rpm -i https://github.com/shift7-ch/katta-admin-cli/releases/latest/download/katta.x86_64.rpm
+sudo rpm -i https://github.com/shift7-ch/katta-admin-cli/releases/latest/download/katta.$(uname -m).rpm
 ```
 
 The `.deb` and `.rpm` packages install `katta` to `/usr/bin/katta` and a bash
 completion script to `/usr/share/bash-completion/completions/katta`. They are
-built for x86_64/amd64 only.
+built for x86_64/amd64 and aarch64/arm64. The executables are also published as
+`katta-linux-amd64` (statically linked) and `katta-linux-arm64` (requires glibc 2.34 or newer).
 
 ### Setup AWS using OIDC Provider and Security Token Service (STS) with `setup` command
 

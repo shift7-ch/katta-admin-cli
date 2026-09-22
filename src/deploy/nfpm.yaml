@@ -1,8 +1,9 @@
 # nfpm configuration for the Katta Admin CLI Linux packages (.deb / .rpm).
-# Rendered and consumed by .github/workflows/release.yml on tag builds.
+# Rendered and consumed by .github/workflows/release.yml on tag builds, with ARCH set to amd64 or arm64
+# (nfpm maps it to x86_64 or aarch64 for .rpm).
 # See https://nfpm.goreleaser.com/configuration/
 name: katta
-arch: amd64
+arch: ${ARCH}
 platform: linux
 version: ${VERSION}
 version_schema: none
@@ -25,3 +26,12 @@ contents:
     dst: /usr/share/bash-completion/completions/katta
     file_info:
       mode: 0644
+# Runtime dependency on glibc for the dynamically linked aarch64 executable (profile linux-aarch64 in pom.xml).
+# DEB_DEPENDS and RPM_DEPENDS are empty for the statically linked amd64 executable; nfpm drops empty entries.
+overrides:
+  deb:
+    depends:
+      - ${DEB_DEPENDS}
+  rpm:
+    depends:
+      - ${RPM_DEPENDS}
