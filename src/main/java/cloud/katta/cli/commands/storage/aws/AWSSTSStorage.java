@@ -9,7 +9,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.security.cert.Certificate;
@@ -64,6 +63,8 @@ import static cloud.katta.cli.commands.common.Defaults.*;
         mixinStandardHelpOptions = true)
 public class AWSSTSStorage implements Callable<Void> {
 
+    private static final int TIMEOUT_MILLIS = 30000;
+
     // TODO get from /api/config instead/optionally?
     @CommandLine.Option(names = {"--realmUrl"}, description = "Keycloak realm URL with scheme. Example: \"https://keycloak.testing.katta.cloud/realms/cryptomator\".", required = true)
     String realmUrl;
@@ -93,16 +94,21 @@ public class AWSSTSStorage implements Callable<Void> {
         }
         // remove trailing slash
         realmUrl = realmUrl.replaceAll("/$", "");
-        final String arnPostfix = realmUrl.replace("https://", "");
+        final URI uri = new URI(realmUrl);
+        if(!"https".equalsIgnoreCase(uri.getScheme())) {
+            throw new CommandLine.ParameterException(new CommandLine(this), String.format("--realmUrl must use https: %s", realmUrl));
+        }
+        final String arnPostfix = realmUrl.substring(uri.getScheme().length() + "://".length());
 
-        final URL url = new URI(realmUrl).toURL();
+        final URL url = uri.toURL();
 
         final String sha = getThumbprint(url);
         System.out.println(sha);
 
         try (final IamClient iam = IamClient.builder()
                 .region(Region.AWS_GLOBAL)
-                .credentialsProvider(DefaultCredentialsProvider.builder().profileName(profileName).build())
+                .credentialsProvider(DefaultCredentialsProvider.builder()
+                        .profileName(profileName).build())
                 .build()) {
             call(iam, arnPostfix, sha);
         }
@@ -114,9 +120,6 @@ public class AWSSTSStorage implements Callable<Void> {
         System.out.println(existingOpenIdConnectProviders);
 
         final Optional<OpenIDConnectProviderListEntry> existingOIDCProvider = existingOpenIdConnectProviders.openIDConnectProviderList().stream().filter(idp -> idp.arn().endsWith(arnPostfix)).findFirst();
-        //
-        //		aws iam create-open-id-connect-provider --url https://testing.katta.cloud/kc/realms/cryptomator --client-id-list cryptomator cryptomatorhub  --thumbprint-list BE21B29075BF9F3265353F8B85208A8981DAEC2A
-        //
         final String oidcProviderArn;
         if(existingOIDCProvider.isPresent()) {
             final GetOpenIdConnectProviderResponse response = iam.getOpenIDConnectProvider(GetOpenIdConnectProviderRequest.builder()
@@ -302,97 +305,26 @@ public class AWSSTSStorage implements Callable<Void> {
                 .build());
     }
 
+    /**
+     * SHA-1 thumbprint of the last certificate in the chain presented by the server, which is the top intermediate CA
+     * per <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc_verify-thumbprint.html">AWS docs</a>.
+     */
     private static String getThumbprint(final URL url) throws IOException, CertificateEncodingException {
-        //		openssl s_client -servername testing.hub.cryptomator.org -showcerts -connect testing.hub.cryptomator.org:443 > testing.hub.cryptomator.org.crt
-        //
-        //		vi testing.hub.cryptomator.org.crt ...
-        //		(remove the irrelevant parts from the chain)
-        //
-        //		cat testing.hub.cryptomator.org.crt
-        //				-----BEGIN CERTIFICATE-----
-        //				MIIGBDCCBOygAwIBAgISA1CGKN3OkGJihg/qGhz2fl3fMA0GCSqGSIb3DQEBCwUA
-        //		MDIxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MQswCQYDVQQD
-        //				EwJSMzAeFw0yMzExMTIxMzAyMTdaFw0yNDAyMTAxMzAyMTZaMCYxJDAiBgNVBAMT
-        //		G3Rlc3RpbmcuaHViLmNyeXB0b21hdG9yLm9yZzCCAiIwDQYJKoZIhvcNAQEBBQAD
-        //				ggIPADCCAgoCggIBALWWmJr7lckOPCysl8p8FywJ2BwfCfdqMqTeb7KdOa3Zd9kb
-        //		rb0dYUAs6cs4XKIxSBzKTDJAZiE5d2/iXUgHIBS8hDjG8U40EFaKDTc/JugOSovs
-        //		HB6FQTi4YCMNfm3oMBiREMXYQTEKErBFfECbtGw8mTua2suT6Uc7lwj91qbPO6BN
-        //				TROk0Az1NcifYOz8lMZhelg0WXEa10YfalaKGtjh4srMBv0rT85PpXaJXaNp58Ls
-        //		4Psf/YlPjGJOhevnyAuqZouUD9sz7gZX8WvQ87y9uTXpDoarySh/0nppYLPZTDty
-        //		sI3LeVwwrf4ir5jObVgjkH1CdS8kj/ueKLLW0BBqSX/9oji9o1zFJlBeRcWbeW08
-        //		SD3+7292cy+zpNo3Y7xEFxGs0SVlJjTRk4cf6edkVq5QzTPqIF9FSn6tgXC6OTJi
-        //		ISHnLGvkuSOzCieADPwjlYJiix3duK+0rpeN3xH3/NnyvPnncbWr/KLwwGE/tsHx
-        //		orv1XLXkV0nmD9MDvE1gqRd7m7n3PwXEojz2Ih37i4bowFx2jYy6acAyY0KJSWwE
-        //		3Rl2BRvOqXY1AOZC2MKOp7mb3hbryr8pzUPb0j4p3iOmOG9MgUQydKLyE97W1Ucd
-        //		PRQMHdoG+EKnDeaauKdZ/3Lj0jMJ1CKlmYOB5qShHv1XCR5uimouioQkoJTFAgMB
-        //				AAGjggIeMIICGjAOBgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUHAwEG
-        //		CCsGAQUFBwMCMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFHkBSFhuApvRJvGqRHZg
-        //		5t183UMCMB8GA1UdIwQYMBaAFBQusxe3WFbLrlAJQOYfr52LFMLGMFUGCCsGAQUF
-        //				BwEBBEkwRzAhBggrBgEFBQcwAYYVaHR0cDovL3IzLm8ubGVuY3Iub3JnMCIGCCsG
-        //		AQUFBzAChhZodHRwOi8vcjMuaS5sZW5jci5vcmcvMCYGA1UdEQQfMB2CG3Rlc3Rp
-        //				bmcuaHViLmNyeXB0b21hdG9yLm9yZzATBgNVHSAEDDAKMAgGBmeBDAECATCCAQUG
-        //		CisGAQQB1nkCBAIEgfYEgfMA8QB2ADtTd3U+LbmAToswWwb+QDtn2E/D9Me9AA0t
-        //		cm/h+tQXAAABi8PXIB0AAAQDAEcwRQIhAPOlsQr63JOSMbTFWOM746oA7i4HQ+hl
-        //		p7M3pRpG4HYQAiBKqLSDsx1FdI18Fax3k7zkCgsY8x96ZAQvVUfdch0xoAB3AO7N
-        //		0GTV2xrOxVy3nbTNE6Iyh0Z8vOzew1FIWUZxH7WbAAABi8PXIBwAAAQDAEgwRgIh
-        //		AOZskIE18A5sTthKz6w3wMvIocbaoj3UCTCIAXWVJJNzAiEAmMWS709vLq/WOPG0
-        //		5hb6lBPn6NRnjizJaNEnj/ts71EwDQYJKoZIhvcNAQELBQADggEBADiSgsGpOKqZ
-        //		0kzeIS9x7vJlc3I0lnScB9JjxJyLoZFs//T4SNWE18zFxnzVspWRnwu4NTmuGURv
-        //		6RWJ8RAznYwjZCnVDdQREUSX7wahzGdz+3GalRaIYngkvwHOhT+aGLbrKRjz+Pfh
-        //		13qMStwjlfA6iSofHqVeQFCf48itgeVjNbpdZKEOLwdiV+JMwpT4n/i0nfVwWkaG
-        //		RcEWn8S4gfSq1iZ/LAhWdyB0QJ4EcCO6mx02wABxbQibPc5FM8Q64j37TizHniVu
-        //		hs+X7qFNDF/jvbob3sL09e0BLjiZWxVasAHiAAaZONTRV0N5YYV56F5br/vnegic
-        //		u3AvSS5HW70=
-        //				-----END CERTIFICATE-----
-        //
-        //
-        //				openssl x509 -in testing.hub.cryptomator.org.crt -fingerprint -sha1 -noout | sed -e 's/://g' | sed -e 's/[Ss][Hh][Aa]1 [Ff]ingerprint=//'
-        //		BE21B29075BF9F3265353F8B85208A8981DAEC2A
-        //
-        //		aws iam create-open-id-connect-provider --url https://testing.katta.cloud/kc/realms/cryptomator --client-id-list cryptomator cryptomatorhub  --thumbprint-list BE21B29075BF9F3265353F8B85208A8981DAEC2A
-        //		{
-        //			"OpenIDConnectProviderArn": "arn:aws:iam::930717317329:oidc-provider/testing.hub.cryptomator.org/kc/realms/cryptomator1"
-        //		}
-        //
-        //		aws iam list-open-id-connect-providers
-        //
-        //		aws iam get-open-id-connect-provider --open-id-connect-provider-arn arn:aws:iam::930717317329:oidc-provider/testing.hub.cryptomator.org/kc/realms/cryptomator
-        //		{
-        //			"Url": "testing.hub.cryptomator.org/kc/realms/cryptomator",
-        //				"ClientIDList": [
-        //			"cryptomatorhub",
-        //					"cryptomator"
-        //    ],
-        //			"ThumbprintList": [
-        //			"a053375bfe84e8b748782c7cee15827a6af5a405"
-        //    ],
-        //			"CreateDate": "2023-11-13T13:51:32.729000+00:00",
-        //				"Tags": []
-        //		}
-        HttpURLConnection.setFollowRedirects(false);
         final Certificate[] chain = getCertificates(url);
-
-        // use the root/relevant CA certificate (typically the last in the chain) for the thumbprint
-        if(chain.length == 0) {
-            throw new CertificateEncodingException("No certificates returned for URL: " + url);
-        }
-        final Certificate caCert = chain[chain.length - 1];
-        return DigestUtils.sha1Hex(caCert.getEncoded());
+        return DigestUtils.sha1Hex(chain[chain.length - 1].getEncoded());
     }
 
     private static Certificate[] getCertificates(final URL url) throws IOException {
         final HttpsURLConnection c = (HttpsURLConnection) url.openConnection();
-        c.setRequestMethod("HEAD"); // GET
-        c.setDoOutput(false);
-        c.setAllowUserInteraction(false);
-        c.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0 URLInspect/1.0");
-        c.setRequestProperty("Connection", "close");
-
-        c.connect(); // throws SSL handshake exception
-
-        // retrieve TLS info before reading response (which closes connection?)
-        return c.getServerCertificates();
+        c.setConnectTimeout(TIMEOUT_MILLIS);
+        c.setReadTimeout(TIMEOUT_MILLIS);
+        c.setRequestProperty("User-Agent", "katta-cli");
+        try {
+            c.connect();
+            return c.getServerCertificates();
+        }
+        finally {
+            c.disconnect();
+        }
     }
 }
-
-
