@@ -1,0 +1,7 @@
+{
+  "resources": [
+    {
+      "glob": "cloud/katta/cli/version.properties"
+    }
+  ]
+}

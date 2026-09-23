@@ -12,6 +12,7 @@ import picocli.CommandLine;
 
 @CommandLine.Command(name = "katta",
         mixinStandardHelpOptions = true,
+        versionProvider = VersionProvider.class,
         subcommands = {
                 // storage
                 Setup.class,
