@@ -13,12 +13,8 @@ public class Chipotle {
         new CommandLine(new Katta()).execute(
                 "setup", "aws",
                 "--profileName", "430118840017_AdministratorAccess",
-                "--realmUrl", "https://testing.katta.cloud/kc/realms/chipotle",
-                "--awsAccountId", "430118840017",
+                "--hubUrl", "https://testing.katta.cloud/chipotle",
                 "--roleNamePrefix", "testing.katta.cloud-chipotle-",
-                "--clientId", "cryptomator",
-                "--clientId", "cryptomatorhub",
-                "--clientId", "cryptomatorvaults",
                 "--bucketPrefix", "katta-test-"
         );
     }

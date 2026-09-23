@@ -4,7 +4,11 @@
 
 package cloud.katta.cli.commands.storage.aws;
 
+import org.apache.commons.io.IOUtils;
+import org.json.JSONObject;
+
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -54,9 +58,8 @@ import static cloud.katta.cli.commands.common.Defaults.*;
         mixinStandardHelpOptions = true)
 public class AWSSTSStorage implements Callable<Void> {
 
-    // TODO get from /api/config instead/optionally?
-    @CommandLine.Option(names = {"--realmUrl"}, description = "Keycloak realm URL with scheme. Example: \"https://keycloak.testing.katta.cloud/realms/cryptomator\".", required = true)
-    String realmUrl;
+    @CommandLine.Option(names = {"--hubUrl"}, description = "Hub URL. Example: \"https://hub.testing.katta.cloud\"", required = true)
+    String hubUrl;
 
     @CommandLine.Option(names = {"--roleNamePrefix"}, description = "IAM ARN role name prefix (not a full ARN; do not include 'arn:aws:iam::...:role", required = false, defaultValue = "katta-")
     String roleNamePrefix;
@@ -70,22 +73,28 @@ public class AWSSTSStorage implements Callable<Void> {
     @CommandLine.Option(names = {"--maxSessionDuration"}, description = "Session duration for STS tokens in seconds.", required = false)
     Integer maxSessionDuration;
 
-    // TODO can from /api/config instead/optionally?
-    @CommandLine.Option(names = {"--clientId"}, description = "ClientIds for the OIDC provider.", required = false)
+    /**
+     * Keycloak realm URL and client IDs for the OIDC provider, read from the Hub's public configuration.
+     */
+    String realmUrl;
     List<String> clientId;
 
     int sleep = 10000;
 
     @Override
     public Void call() throws Exception {
-        if(null == clientId) {
-            clientId = List.of(CLIENT_IDS);
-        }
-        // remove trailing slash
-        realmUrl = realmUrl.replaceAll("/$", "");
+        final String json = IOUtils.toString(URI.create(hubUrl.replaceAll("/$", "") + "/api/config"), StandardCharsets.UTF_8);
+        final JSONObject apiConfig = new JSONObject(json);
+        realmUrl = String.format("%s/realms/%s", apiConfig.getString("keycloakUrl").replaceAll("/$", ""), apiConfig.getString("keycloakRealm"));
+        clientId = List.of(
+                apiConfig.getString("keycloakClientIdCryptomator"),
+                apiConfig.getString("keycloakClientIdHub"),
+                apiConfig.getString("keycloakClientIdCryptomatorVaults"));
+        System.out.printf("Using realm %s with clients %s%n", realmUrl, clientId);
+
         final URI uri = new URI(realmUrl);
         if(!"https".equalsIgnoreCase(uri.getScheme())) {
-            throw new CommandLine.ParameterException(new CommandLine(this), String.format("--realmUrl must use https: %s", realmUrl));
+            throw new CommandLine.ParameterException(new CommandLine(this), String.format("Keycloak realm URL must use https: %s", realmUrl));
         }
         final String arnPostfix = realmUrl.substring(uri.getScheme().length() + "://".length());
 
@@ -147,12 +156,6 @@ public class AWSSTSStorage implements Callable<Void> {
                         .effect(IamEffect.ALLOW)
                         .addAction("s3:CreateBucket")
                         .addAction("s3:GetBucketPolicy")
-                        .addAction("s3:PutBucketVersioning")
-                        .addAction("s3:GetBucketVersioning")
-                        .addAction("s3:GetAccelerateConfiguration")
-                        .addAction("s3:PutAccelerateConfiguration")
-                        .addAction("s3:GetEncryptionConfiguration")
-                        .addAction("s3:PutEncryptionConfiguration")
                         .addResource(String.format("arn:aws:s3:::%s*", bucketPrefix)))
                 .addStatement(b -> b
                         .effect(IamEffect.ALLOW)
