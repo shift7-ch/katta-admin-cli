@@ -10,7 +10,9 @@ import java.util.concurrent.Callable;
 import cloud.katta.cli.commands.AbstractAuthorizationCode;
 import cloud.katta.client.ApiClient;
 import cloud.katta.client.ApiException;
+import cloud.katta.client.JSON;
 import cloud.katta.client.api.StorageProfileResourceApi;
+import cloud.katta.client.model.StorageProfileDto;
 import picocli.CommandLine;
 
 /**
@@ -41,15 +43,13 @@ public class ArchiveStorageProfile extends AbstractAuthorizationCode implements 
         final ApiClient apiClient = new ApiClient();
         apiClient.setBasePath(hubUrl);
         apiClient.addDefaultHeader("Authorization", "Bearer %s".formatted(this.login()));
-        this.call(new StorageProfileResourceApi(apiClient));
+        final StorageProfileDto response = this.call(new StorageProfileResourceApi(apiClient));
+        System.out.println(new JSON().getContext(null).writeValueAsString(response));
         return null;
     }
 
-    protected void call(final StorageProfileResourceApi storageProfileResourceApi) throws ApiException {
-        System.out.println("storage profiles:");
-        System.out.println(storageProfileResourceApi.apiStorageprofileGet(null));
+    protected StorageProfileDto call(final StorageProfileResourceApi storageProfileResourceApi) throws ApiException {
         storageProfileResourceApi.apiStorageprofileProfileIdPut(UUID.fromString(uuid), true);
-        System.out.println("updated:");
-        System.out.println(storageProfileResourceApi.apiStorageprofileProfileIdGet(UUID.fromString(uuid)));
+        return storageProfileResourceApi.apiStorageprofileProfileIdGet(UUID.fromString(uuid));
     }
 }
