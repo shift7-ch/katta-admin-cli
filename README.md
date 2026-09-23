@@ -241,6 +241,29 @@ katta storageprofile minio sts \
 - `--regions`: Additional bucket regions. Example: `--regions us-east-1 --regions us-west-2`
 - `--name`: Display name for the storage profile.
 
+### Obtain an access token with `accesstoken` command
+
+Print an access token to standard output, e.g. to pass it with `--accessToken` to other commands. Without `--clientSecret`, the authorization code flow
+is used and you log in in the browser. With `--clientSecret`, the token is obtained non-interactively with the client credentials grant, e.g. for the
+service account of client `cryptomatorhub-system` with realm role `admin`.
+
+```bash
+ACCESS_TOKEN=$(katta accesstoken \
+  --tokenUrl https://keycloak.default.katta.cloud/realms/cryptomator/protocol/openid-connect/token \
+  --clientId cryptomatorhub-system \
+  --clientSecret <client-secret>)
+```
+
+**Required Options:**
+
+- `--tokenUrl`: Keycloak token endpoint URL. Example: `https://keycloak.default.katta.cloud/realms/cryptomator/protocol/openid-connect/token`
+- `--clientId`: Client ID. Example: `cryptomator`
+
+**Additional Options:**
+
+- `--authUrl`: Keycloak auth endpoint URL for the authorization code flow. Required unless `--clientSecret` is provided.
+- `--clientSecret`: Client secret to use the client credentials grant instead of the authorization code flow.
+
 ### Generate shell completion script with `completion` command
 
 Generate a bash completion script for the `katta` CLI and install it for the current shell session.
