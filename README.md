@@ -89,6 +89,17 @@ completion script to `/usr/share/bash-completion/completions/katta`. They are
 built for x86_64/amd64 and aarch64/arm64. The executables are also published as
 `katta-linux-amd64` (statically linked) and `katta-linux-arm64` (requires glibc 2.34 or newer).
 
+### Container image
+
+Every tagged release publishes a multi-platform image (linux/amd64 and linux/arm64) with the native executable as entrypoint:
+
+```bash
+docker run --rm ghcr.io/shift7-ch/katta-admin-cli:latest storageprofile s3 static --help
+```
+
+The image is built from [`src/deploy/Dockerfile`](src/deploy/Dockerfile) on a distroless base and runs as non-root (uid 65532); any other
+non-root uid works as well.
+
 ### Setup AWS using OIDC Provider and Security Token Service (STS) with `setup` command
 
 Set up AWS as a storage backend for Katta Server. Configures identity provider and roles in IAM to restrict access to S3 buckets to users authenticated by
