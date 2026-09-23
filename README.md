@@ -283,11 +283,10 @@ echo 'source ~/.bash_completion.d/katta' >> ~/.bashrc
 
 - `--shell`: Shell to generate completion for. Only `bash` is supported. Defaults to `bash`.
 
-#### Update thumbprints of TLS certificates
+#### TLS certificates of the Keycloak endpoint
 
-Thumbprints from the TLS certificates of the Keycloak endpoint need to be in place at AWS in the IAM identity provider endpoint verification and updated when
-TLS certificates are renewed. Use `katta setup aws` to update thumbprints of renewed certificates.
-
-> AWS secures communication with OIDC identity providers (IdPs) using our library of trusted Certificate Authorities (CAs). If your IdP relies on a certificate
-> that isn't signed by one of these trusted CAs, then we secure communication using the thumbprints you specify.
+`katta setup aws` does not set certificate thumbprints on the IAM OIDC provider. AWS verifies the TLS certificate of the Keycloak endpoint against
+its [library of trusted root CAs](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc_verify-thumbprint.html), so no
+update is needed when certificates are renewed. If Keycloak uses a certificate not signed by one of these CAs, add the thumbprint to the identity
+provider in IAM manually.
 
