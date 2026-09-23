@@ -156,12 +156,6 @@ public class AWSSTSStorage implements Callable<Void> {
                         .effect(IamEffect.ALLOW)
                         .addAction("s3:CreateBucket")
                         .addAction("s3:GetBucketPolicy")
-                        .addAction("s3:PutBucketVersioning")
-                        .addAction("s3:GetBucketVersioning")
-                        .addAction("s3:GetAccelerateConfiguration")
-                        .addAction("s3:PutAccelerateConfiguration")
-                        .addAction("s3:GetEncryptionConfiguration")
-                        .addAction("s3:PutEncryptionConfiguration")
                         .addResource(String.format("arn:aws:s3:::%s*", bucketPrefix)))
                 .addStatement(b -> b
                         .effect(IamEffect.ALLOW)
