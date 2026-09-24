@@ -52,7 +52,7 @@ public class AWSSTSStorageProfile extends AbstractStorageProfile {
     @Override
     protected StorageProfileDto call(final StorageProfileResourceApi storageProfileResourceApi) throws ApiException {
         return storageProfileResourceApi.apiStorageprofilePost(new StorageProfileDto(new StorageProfileS3STSDto()
-                .name(null == name ? this.toString() : name)
+                .name(this.name())
                 .protocol(Protocol.S3_STS)
                 .archived(false)
 
