@@ -202,7 +202,7 @@ katta setup minio \
 **Additional Options:**
 
 - `--minioAlias`: MinIO client alias used in the printed `mc` commands. Defaults to `myminio`.
-- `--roleNamePrefix`: Prefix for the generated OIDC provider names (`<roleNamePrefix><clientId>`). Defaults to `katta-`.
+- `--roleNamePrefix`: Prefix for the generated policy names. Defaults to `katta-`.
 - `--bucketPrefix`: Prefix used when creating buckets for this storage profile. Defaults to `katta-`.
 - `--createBucketPolicyName`: Name of the bucket creation policy. Defaults to `<roleNamePrefix>createbucketpolicy`.
 - `--accessBucketPolicyName`: Name of the bucket access policy. Defaults to `<roleNamePrefix>accessbucketpolicy`.
@@ -210,7 +210,7 @@ katta setup minio \
 The MinIO Admin API used through `minio-java` cannot configure the OIDC identity provider itself (the `set-config-kv` endpoint
 expects an encrypted payload that `minio-java` does not implement, and `minio/minio` is archived read-only since April 2026).
 `katta setup minio` therefore does **not** register the providers; instead it prints the `mc alias set`, one
-`mc admin config set … identity_openid:<roleNamePrefix><clientId>` per client, and `mc admin service restart` commands for you
+`mc admin config set … identity_openid:<clientId>` per client, and `mc admin service restart` commands for you
 to run against the MinIO server. (`mc idp openid add <name> … role_policy=…` is an equivalent shorthand of current `mc`
 versions, writing the same `identity_openid:<name>` configuration.)
 
