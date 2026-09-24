@@ -128,6 +128,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v3
         with:
+          generate_release_notes: true
           fail_on_unmatched_files: true
           files: |
             target/katta-linux-${{ matrix.arch }}
@@ -237,6 +238,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v3
         with:
+          generate_release_notes: true
           fail_on_unmatched_files: true
           files: |
             target/katta-macos-arm64.tar.gz
