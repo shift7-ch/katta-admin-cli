@@ -197,6 +197,29 @@ jobs:
           subject-name: ghcr.io/shift7-ch/katta-admin-cli
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
+      - name: Build and push container image with a shell
+        id: push-shell
+        uses: docker/build-push-action@v7
+        with:
+          context: dist
+          file: src/deploy/Dockerfile.shell
+          platforms: linux/amd64,linux/arm64
+          push: ${{ startsWith(github.ref, 'refs/tags/') }}
+          tags: |
+            ghcr.io/shift7-ch/katta-admin-cli:${{ steps.version.outputs.value }}-shell
+            ghcr.io/shift7-ch/katta-admin-cli:shell
+          labels: |
+            org.opencontainers.image.title=Katta Admin CLI
+            org.opencontainers.image.vendor=shift7 GmbH
+            org.opencontainers.image.source=https://github.com/shift7-ch/katta-admin-cli
+            org.opencontainers.image.licenses=AGPL-3.0-or-later
+      - name: Generate artifact attestation for the image with a shell
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/attest@v4
+        with:
+          subject-name: ghcr.io/shift7-ch/katta-admin-cli
+          subject-digest: ${{ steps.push-shell.outputs.digest }}
+          push-to-registry: true
 
   macos:
     name: Build native image for macOS
