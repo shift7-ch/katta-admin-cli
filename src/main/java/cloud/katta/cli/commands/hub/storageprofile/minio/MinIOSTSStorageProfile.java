@@ -72,7 +72,7 @@ public class MinIOSTSStorageProfile extends AbstractStorageProfile {
             throw new IllegalArgumentException("Invalid endpoint URL: " + endpointUrl, e);
         }
         return storageProfileResourceApi.apiStorageprofilePost(new StorageProfileDto(new StorageProfileS3STSDto()
-                .name(null == name ? this.toString() : name)
+                .name(this.name())
                 .protocol(Protocol.S3_STS)
                 .archived(false)
 
