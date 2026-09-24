@@ -144,6 +144,7 @@ katta storageprofile aws sts \
 - `--bucketPrefix`: Prefix used when creating buckets for this storage profile. Defaults to `katta-`.
 - `--authUrl`: Keycloak auth endpoint URL. Overrides the value fetched from `--hubUrl`.
 - `--tokenUrl`: Keycloak token endpoint URL. Overrides the value fetched from `--hubUrl`.
+- `--skipIfExists`: Do not upload when a storage profile with the same name already exists, archived or not. Prints the existing storage profile instead. Note that no attempt is made to update it.
 
 ### Configure storage profile for a generic S3-compatible provider using `storageprofile` command
 
@@ -168,6 +169,7 @@ katta storageprofile s3 static \
 - `--bucketPrefix`: Prefix used when creating buckets for this storage profile. Defaults to `katta-`.
 - `--regions`: Additional bucket regions. Example: `--regions us-east-1 --regions us-west-2`
 - `--name`: Display name for the storage profile.
+- `--skipIfExists`: Do not upload when a storage profile with the same name already exists, archived or not. Prints the existing storage profile instead. Note that no attempt is made to update it.
 
 ### Setup MinIO using OIDC Provider and Security Token Service (STS) with `setup` command
 
@@ -250,6 +252,7 @@ katta storageprofile minio sts \
 - `--bucketPrefix`: Prefix used when creating buckets for this storage profile. Defaults to `katta-`.
 - `--regions`: Additional bucket regions. Example: `--regions us-east-1 --regions us-west-2`
 - `--name`: Display name for the storage profile.
+- `--skipIfExists`: Do not upload when a storage profile with the same name already exists, archived or not. Prints the existing storage profile instead. Note that no attempt is made to update it.
 
 ### Obtain an access token with `accesstoken` command
 
