@@ -20,7 +20,7 @@ import software.amazon.awssdk.policybuilder.iam.IamPolicyWriter;
 /**
  * Sets up MinIO for Katta in STS mode:
  * <ul>
- *  <li>creates/updates OIDC provider for cryptomator, cryptomatorhub and cryptomatorvaults clients.</li>
+ *  <li>prints the commands registering an OIDC provider per Keycloak client, each named after its client id.</li>
  *  <li>creates roles and role policy for
  *      <ul>
  *          <li>creating vaults: access restricted to creating buckets with given prefix</li>
@@ -52,7 +52,7 @@ public class MinIOSTSStorage implements Callable<Void> {
     @CommandLine.Option(names = {"--secretKey"}, description = "Secret Key for administering MinIO if no profile is used.", required = true)
     String secretKey;
 
-    @CommandLine.Option(names = {"--roleNamePrefix"}, description = "IAM ARN role name prefix (not a full ARN; do not include 'arn:aws:iam::...:role", defaultValue = "katta-")
+    @CommandLine.Option(names = {"--roleNamePrefix"}, description = "Prefix for the generated policy names.", defaultValue = "katta-")
     String roleNamePrefix;
 
     @CommandLine.Option(names = {"--bucketPrefix"}, description = "Bucket Prefix for STS vaults.", defaultValue = "katta-")
@@ -160,9 +160,10 @@ public class MinIOSTSStorage implements Callable<Void> {
                         mc admin service restart %s
                         %n""",
                 minioAlias, endpointUrl, accessKey, secretKey,
-                minioAlias, roleNamePrefix + keycloakClientIdCryptomator, wellKnown, keycloakClientIdCryptomator, createBucketPolicyName,
-                minioAlias, roleNamePrefix + keycloakClientIdHub, wellKnown, keycloakClientIdHub, createBucketPolicyName,
-                minioAlias, roleNamePrefix + keycloakClientIdCryptomatorVaults, wellKnown, keycloakClientIdCryptomatorVaults, accessBucketPolicyName,
+                // provider name = Keycloak client id, as in katta-compose and the Helm chart of katta-helm
+                minioAlias, keycloakClientIdCryptomator, wellKnown, keycloakClientIdCryptomator, createBucketPolicyName,
+                minioAlias, keycloakClientIdHub, wellKnown, keycloakClientIdHub, createBucketPolicyName,
+                minioAlias, keycloakClientIdCryptomatorVaults, wellKnown, keycloakClientIdCryptomatorVaults, accessBucketPolicyName,
                 minioAlias
         );
         return null;
