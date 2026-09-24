@@ -1,0 +1,8 @@
+# Variant of src/deploy/Dockerfile with a shell, for callers running several commands in sequence,
+# e.g. `ACCESS_TOKEN=$(katta accesstoken ...)` followed by `katta storageprofile ... --accessToken`.
+# The debug variant of the distroless base adds a busybox shell (/busybox/sh) and wget, and keeps
+# the glibc required by the linux-arm64 executable, the CA certificates and the non-root user.
+FROM gcr.io/distroless/base-debian12:debug-nonroot
+ARG TARGETARCH
+COPY --chmod=0755 katta-linux-${TARGETARCH} /usr/bin/katta
+ENTRYPOINT ["/usr/bin/katta"]

@@ -100,6 +100,16 @@ docker run --rm ghcr.io/shift7-ch/katta-admin-cli:latest storageprofile s3 stati
 The image is built from [`src/deploy/Dockerfile`](src/deploy/Dockerfile) on a distroless base and runs as non-root (uid 65532); any other
 non-root uid works as well.
 
+The `<version>-shell` and `shell` tags are a variant built from [`src/deploy/Dockerfile.shell`](src/deploy/Dockerfile.shell) with a busybox shell
+and `wget`, for callers running several commands in sequence, such as obtaining an access token first:
+
+```bash
+docker run --rm --entrypoint /busybox/sh ghcr.io/shift7-ch/katta-admin-cli:shell -c '
+  ACCESS_TOKEN=$(katta accesstoken --tokenUrl <token-url> --clientId cryptomatorhub-system --clientSecret <client-secret>)
+  katta storageprofile s3 static --hubUrl <hub-url> --accessToken $ACCESS_TOKEN --endpointUrl <s3-endpoint-url> --region <region> --skipIfExists
+'
+```
+
 ### Setup AWS using OIDC Provider and Security Token Service (STS) with `setup` command
 
 Set up AWS as a storage backend for Katta Server. Configures identity provider and roles in IAM to restrict access to S3 buckets to users authenticated by
