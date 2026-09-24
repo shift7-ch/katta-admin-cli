@@ -211,7 +211,8 @@ The MinIO Admin API used through `minio-java` cannot configure the OIDC identity
 expects an encrypted payload that `minio-java` does not implement, and `minio/minio` is archived read-only since April 2026).
 `katta setup minio` therefore does **not** register the providers; instead it prints the `mc alias set`, one
 `mc admin config set … identity_openid:<roleNamePrefix><clientId>` per client, and `mc admin service restart` commands for you
-to run against the MinIO server. (`mc idp openid add` is only available against MinIO AIStor deployments.)
+to run against the MinIO server. (`mc idp openid add <name> … role_policy=…` is an equivalent shorthand of current `mc`
+versions, writing the same `identity_openid:<name>` configuration.)
 
 MinIO prints the generated `RoleARN` for each provider to its server log on restart — pass those to
 `katta storageprofile minio sts` below.
