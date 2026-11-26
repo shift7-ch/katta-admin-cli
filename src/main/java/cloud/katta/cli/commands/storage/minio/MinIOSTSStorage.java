@@ -160,7 +160,7 @@ public class MinIOSTSStorage implements Callable<Void> {
                         mc admin service restart %s
                         %n""",
                 minioAlias, endpointUrl, accessKey, secretKey,
-                // provider name = Keycloak client id, as in katta-compose and the Helm chart of katta-helm
+                // provider name = Keycloak client id, as in deploy/compose/local and the Helm chart of katta-server
                 minioAlias, keycloakClientIdCryptomator, wellKnown, keycloakClientIdCryptomator, createBucketPolicyName,
                 minioAlias, keycloakClientIdHub, wellKnown, keycloakClientIdHub, createBucketPolicyName,
                 minioAlias, keycloakClientIdCryptomatorVaults, wellKnown, keycloakClientIdCryptomatorVaults, accessBucketPolicyName,

@@ -46,11 +46,11 @@ Run unit tests only:
 mvn verify -DskipITs
 ```
 
-Integration tests are tagged with `cli` and start Katta Server, Keycloak and MinIO with the Docker Compose environment of
-[katta-compose](https://github.com/shift7-ch/katta-compose) included with its Git URL in
-[`compose.yaml`](src/test/resources/compose.yaml), using its default variables, Keycloak realm and setup files. Docker Compose fetches the
-referenced commit on first use. To run integration tests with a local checkout of katta-compose instead, replace the Git URL with the absolute
-path to `compose.yaml` in the checkout.
+Integration tests are tagged with `cli` and start Katta Server, Keycloak and MinIO with the Docker Compose scenario
+[`deploy/compose/local`](https://github.com/shift7-ch/katta-server/tree/develop/deploy/compose/local) of katta-server, included with its
+Git URL in [`compose.yaml`](src/test/resources/compose.yaml). Docker Compose fetches the referenced commit on first use. To run
+integration tests with a local checkout of katta-server instead, replace the Git URL with the absolute path to
+`deploy/compose/local/compose.yaml` in the checkout.
 
 ```bash
 mvn verify

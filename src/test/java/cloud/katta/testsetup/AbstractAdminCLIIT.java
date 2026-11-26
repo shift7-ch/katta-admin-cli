@@ -16,7 +16,7 @@ public class AbstractAdminCLIIT {
 
     @BeforeEach
     protected void setup() throws Exception {
-        // service account of client cryptomatorhub-system with realm role admin, as the realm of katta-compose does not enable direct access grants
+        // service account of client cryptomatorhub-system with realm role admin, as the realm of katta-server's deploy/compose/local does not enable direct access grants
         accessToken = given()
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .formParam("client_id", "cryptomatorhub-system")

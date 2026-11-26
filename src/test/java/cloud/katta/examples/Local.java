@@ -11,14 +11,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Example to use with
- * <code>docker compose -f test/src/test/resources/compose.yaml --profile demo --env-file test/src/test/resources/.local.env up --wait</code>
- * with <code>KEYCLOAK_REALM_FILE</code> and <code>SETUP_DIR</code> set as described in the README.
+ * <code>docker compose -f src/test/resources/compose.yaml up --wait</code>
+ * (deploy/compose/local of katta-server).
  */
 public class Local {
     public static void main(String[] args) {
         final String bucketPrefix = "katta-test-";
-        final String realmUrl = String.format("http://localhost:8180/realms/cryptomator");
-        final String hubUrl = String.format("http://localhost:8080");
+        final String realmUrl = String.format("http://localhost:8380/realms/cryptomator");
+        final String hubUrl = String.format("http://localhost:8280");
         final String region = "eu-central-1";
         if(true) {
             final String[] options = {
@@ -26,7 +26,7 @@ public class Local {
                     "--hubUrl", hubUrl,
                     "--name", "MinIO S3 STS",
                     "--bucketPrefix", bucketPrefix,
-                    "--endpointUrl", "http://localhost:9000",
+                    "--endpointUrl", "http://localhost:9100",
                     "--stsRoleAccessBucket", "arn:minio:iam:::role/Hdms6XDZ6oOpuWYI3gu4gmgHN94", // cryptomatorvaults
                     "--stsRoleCreateBucketClient", "arn:minio:iam:::role/IqZpDC5ahW_DCAvZPZA4ACjEnDE", // cryptomator (Desktop)
                     "--stsRoleCreateBucketHub", "arn:minio:iam:::role/HGKdlY4eFFsXVvJmwlMYMhmbnDE", // cryptomatorhub (Web)
@@ -42,7 +42,7 @@ public class Local {
                     "storageprofile", "s3", "static",
                     "--hubUrl", hubUrl,
                     "--name", "MinIO S3 Static",
-                    "--endpointUrl", "http://localhost:9000",
+                    "--endpointUrl", "http://localhost:9100",
                     "--region", "eu-west-1",
                     "--regions", "eu-west-1",
                     "--regions", "eu-west-2",
