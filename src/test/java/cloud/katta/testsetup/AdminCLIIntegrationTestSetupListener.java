@@ -17,8 +17,9 @@ import java.net.URISyntaxException;
 import java.util.Objects;
 
 /**
- * Starts the Docker Compose environment from <a href="https://github.com/shift7-ch/katta-compose">katta-compose</a>
- * included in {@code compose.yaml} with its default variables when the test plan contains integration tests.
+ * Starts the Docker Compose environment from the local scenario of
+ * <a href="https://github.com/shift7-ch/katta-server/tree/develop/deploy/compose/local">katta-server</a> included in
+ * {@code compose.yaml} when the test plan contains integration tests.
  */
 public class AdminCLIIntegrationTestSetupListener implements TestExecutionListener {
     private static final Logger log = LogManager.getLogger(AdminCLIIntegrationTestSetupListener.class);
@@ -33,7 +34,6 @@ public class AdminCLIIntegrationTestSetupListener implements TestExecutionListen
 
             compose = new ComposeContainer(composeFile())
                     .withPull(true)
-                    .withOptions("--profile=local")
                     .waitingFor("hub", new DockerHealthcheckWaitStrategy());
             compose.start();
         }

@@ -1,5 +1,6 @@
-# Docker Compose environment for integration tests from https://github.com/shift7-ch/katta-compose with its
-# default variables, Keycloak realm and setup files. Replace the reference after # with a tag to use a release, or the
-# URL with the absolute path to compose.yaml in a local checkout.
+# Docker Compose environment for integration tests: Katta Server, Keycloak, PostgreSQL and MinIO from deploy/compose/local of
+# https://github.com/shift7-ch/katta-server with its default variables (Hub on localhost:8280, Keycloak on localhost:8380, MinIO on
+# localhost:9100, see its .env.template), which the tests rely on. Replace the reference after # with a tag or commit to pin a
+# release, or the URL with the absolute path to deploy/compose/local/compose.yaml in a local checkout.
 include:
-  - https://github.com/shift7-ch/katta-compose.git#main
+  - https://github.com/shift7-ch/katta-server.git#develop:deploy/compose/local
