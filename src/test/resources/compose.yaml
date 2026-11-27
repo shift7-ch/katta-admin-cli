@@ -3,4 +3,4 @@
 # localhost:9100, see its .env.template), which the tests rely on. Replace the reference after # with a tag or commit to pin a
 # release, or the URL with the absolute path to deploy/compose/local/compose.yaml in a local checkout.
 include:
-  - https://github.com/shift7-ch/katta-server.git#feature/deploy-consolidation:deploy/compose/local
+  - https://github.com/shift7-ch/katta-server.git#develop:deploy/compose/local
